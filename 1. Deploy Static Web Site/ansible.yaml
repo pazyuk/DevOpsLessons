@@ -1,0 +1,59 @@
+- become: yes
+  hosts: all
+  name: apache-install
+
+  tasks:
+    - name: Wait for apt to unlock
+      become: yes
+      shell:  while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done;
+      
+    - name: Create Filesystem
+      filesystem:
+        fstype: ext4
+        dev: /dev/xvdb
+
+    - name: Mount Filesystem
+      mount:
+        path: /var/www/html
+        src: /dev/xvdb
+        fstype: ext4
+        state: present
+
+    - name: Install apache2
+      apt:        
+        name: apache2
+        update_cache: yes
+        state: latest
+        
+    - name: Enable mod_rewrite
+      apache2_module:
+        name: rewrite
+        state: present
+      notify:
+        - Restart apache2
+
+    - name: Get directory listing
+      become: yes
+      find:
+        paths: /var/www/html
+        patterns: '*'
+        hidden: yes
+      register: directory_content_result
+    
+    - name: Remove directory content
+      become: yes
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ directory_content_result.files }}"
+
+    - name: Sync Web Site
+      git:
+        repo: 'https://bitbucket.org/dptrealtime/html-web-app.git'
+        dest: /var/www/html
+
+  handlers:
+    - name: Restart apache2
+      service:
+        name: apache2
+        state: restarted
