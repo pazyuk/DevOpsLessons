@@ -10,7 +10,7 @@ public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/vIhilPDP11BIyNYpn1uV2lxh1o
 }
 
 resource "aws_instance" "web1" {
-  ami           = "ami-0778521d914d23bc1"
+  ami           = "ami-0aa7d40eeae50c9a9"
   instance_type = "t2.micro"
   key_name      = "none-key"
   vpc_security_group_ids        = ["${aws_security_group.sec-grp.id}"]

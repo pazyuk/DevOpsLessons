@@ -9,7 +9,7 @@ variable "bucket_name" {
 }
 
 variable "ansible_user" {
-  default = "ubuntu"
+  default = "ec2-user"
 }
 
 variable "dns-zone" {

@@ -3,10 +3,6 @@
   name: apache-install
 
   tasks:
-    - name: Wait for apt to unlock
-      become: yes
-      shell:  while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done;
-      
     - name: Create Filesystem
       filesystem:
         fstype: ext4
@@ -19,18 +15,11 @@
         fstype: ext4
         state: present
 
-    - name: Install apache2
-      apt:        
-        name: apache2
-        update_cache: yes
-        state: latest
-        
-    - name: Enable mod_rewrite
-      apache2_module:
-        name: rewrite
+    - name: install apache & amazon cloudwatch
+      yum:
+        name: httpd, amazon-cloudwatch-agent, git
         state: present
-      notify:
-        - Restart apache2
+        update_cache: true
 
     - name: Get directory listing
       become: yes
@@ -52,8 +41,15 @@
         repo: 'https://bitbucket.org/dptrealtime/html-web-app.git'
         dest: /var/www/html
 
+    - name: Copy cloudwatch condfig
+      copy:
+        src: amazon-cloudwatch-agent.json
+        dest: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+      notify:
+        - Restart cloudwatch
+
   handlers:
-    - name: Restart apache2
+    - name: Restart cloudwatch
       service:
-        name: apache2
+        name: amazon-cloudwatch-agent
         state: restarted
